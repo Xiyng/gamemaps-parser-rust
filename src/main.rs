@@ -3,12 +3,13 @@ extern crate gamemaps_parser;
 use std::env::args;
 use std::fs::File;
 use std::io::prelude::*;
+use gamemaps_parser::header;
 
 fn main() {
     let mut args = args();
     args.next(); // The executable is the first argument.
 
-    let mut header_file_path = match args.next() {
+    let header_file_path = match args.next() {
         Some(path) => path,
         None       => return println!("No header file path specified.")
     };
@@ -35,6 +36,8 @@ fn main() {
     if level_file.read_to_end(&mut level_data).is_err() {
         return println!("Error reading level file: {}", level_file_path)
     }
+
+    header::parse(&header_data); // to see whether it runs without errors
 
     println!("Header and level file read succesfully!");
 }
