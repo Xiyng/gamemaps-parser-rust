@@ -1,0 +1,6 @@
+[package]
+name = "gamemaps-parser"
+version = "0.1.0"
+authors = ["Xiyng <xiyng.dev@gmail.com>"]
+
+[dependencies]
