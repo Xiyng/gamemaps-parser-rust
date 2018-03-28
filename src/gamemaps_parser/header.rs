@@ -17,7 +17,7 @@ pub fn parse(data: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
         HeaderParseError::UnexpectedEndOfFile
     ).and_then(|rlew_tag| match rlew_tag {
         0xabcd => Ok(rlew_tag),
-        _ => Err(HeaderParseError::InvalidRlewTag(rlew_tag))
+        _      => Err(HeaderParseError::InvalidRlewTag(rlew_tag))
     })?;
 
     let level_offsets_start = rlew_tag_end;
