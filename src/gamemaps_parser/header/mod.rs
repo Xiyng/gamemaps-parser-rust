@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 extern crate byteorder;
 
 use std::panic;
@@ -47,11 +50,13 @@ pub fn parse(data: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
     Ok(header)
 }
 
+#[derive(Debug, PartialEq)]
 pub struct HeaderData {
     pub level_offsets: Vec<u32>,
     pub tile_info: Vec<u8>
 }
 
+#[derive(Debug, PartialEq)]
 pub enum HeaderParseError {
     UnexpectedEndOfFile,
     InvalidRlewTag(u16)
