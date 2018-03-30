@@ -5,7 +5,7 @@ use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
     let mut header = HeaderData {
-        level_offsets: [0; 100],
+        level_offsets: Vec::new(),
         tile_info: Vec::new()
     };
 
@@ -20,14 +20,22 @@ pub fn parse(data: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
         _      => Err(HeaderParseError::InvalidRlewTag(rlew_tag))
     })?;
 
+    let level_offsets_len = 100;
     let level_offsets_start = rlew_tag_end;
-    let level_offsets_end = level_offsets_start + header.level_offsets.len() * 4;
+    let level_offsets_end = level_offsets_start + level_offsets_len * 4;
     header.level_offsets = panic::catch_unwind(|| {
-        let mut level_offsets = header.level_offsets;
+        let mut level_offsets_buf = [0; 100];
         LittleEndian::read_u32_into(
             &data[level_offsets_start..level_offsets_end],
-            &mut level_offsets
+            &mut level_offsets_buf
         );
+
+        let mut level_offsets = level_offsets_buf.to_vec();
+        let last_existing_index = level_offsets.iter().rposition(|offset| *offset != 0);
+        match last_existing_index {
+            Some(index) => level_offsets.truncate(index + 1),
+            None        => level_offsets.clear()
+        };
         level_offsets
     }).map_err(|_| HeaderParseError::UnexpectedEndOfFile)?;
 
@@ -40,7 +48,7 @@ pub fn parse(data: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
 }
 
 pub struct HeaderData {
-    pub level_offsets: [u32; 100],
+    pub level_offsets: Vec<u32>,
     pub tile_info: Vec<u8>
 }
 
