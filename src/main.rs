@@ -37,7 +37,10 @@ fn main() {
         return println!("Error reading level file: {}", level_file_path)
     }
 
-    header::parse(&header_data); // to see whether it runs without errors
+    println!("Header and level file read succesfully.");
 
-    println!("Header and level file read succesfully!");
+    match header::parse(&header_data) { // to see whether it runs without errors
+        Ok(_)  => println!("Header file parsed successfully."),
+        Err(_) => println!("Error while parsing the header file.")
+    };
 }
