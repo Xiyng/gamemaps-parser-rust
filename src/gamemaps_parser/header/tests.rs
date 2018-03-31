@@ -30,3 +30,25 @@ fn parses_valid_file_with_zero_offsets() {
         tile_info: Vec::new()
     }));
 }
+
+#[test]
+fn parses_valid_file_with_non_zero_offsets() {
+    let mut rlew_tag = vec![0xcd, 0xab];
+    let mut level_offsets = Vec::with_capacity(400);
+    level_offsets.append(&mut vec![0xfe, 0x00, 0x00, 0x00]);
+    level_offsets.append(&mut vec![0; 392]);
+    level_offsets.append(&mut vec![0xef, 0x00, 0x00, 0x00]);
+
+    let mut level_offsets_u32_buf = [0; 100];
+    LittleEndian::read_u32_into(&level_offsets, &mut level_offsets_u32_buf);
+    let level_offsets_u32 = level_offsets_u32_buf.to_vec();
+
+    let mut test_data = Vec::with_capacity(rlew_tag.len() + level_offsets.len());
+    test_data.append(&mut rlew_tag);
+    test_data.append(&mut level_offsets);
+
+    assert_eq!(parse(&test_data), Ok(HeaderData {
+        level_offsets: level_offsets_u32,
+        tile_info: Vec::new()
+    }));
+}
