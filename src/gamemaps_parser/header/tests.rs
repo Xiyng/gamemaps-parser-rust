@@ -15,3 +15,18 @@ fn does_not_parse_invalid_rlew_tag() {
         Err(HeaderParseError::InvalidRlewTag(0xeffe))
     );
 }
+
+#[test]
+fn parses_valid_file_with_zero_offsets() {
+    let mut rlew_tag = vec![0xcd, 0xab];
+    let mut level_offsets = vec![0; 400];
+
+    let mut test_data = Vec::with_capacity(rlew_tag.len() + level_offsets.len());
+    test_data.append(&mut rlew_tag);
+    test_data.append(&mut level_offsets);
+
+    assert_eq!(parse(&test_data), Ok(HeaderData {
+        level_offsets: Vec::new(),
+        tile_info: Vec::new()
+    }));
+}
