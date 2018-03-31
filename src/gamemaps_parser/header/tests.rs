@@ -17,6 +17,22 @@ fn does_not_parse_invalid_rlew_tag() {
 }
 
 #[test]
+fn does_not_parse_valid_rlew_tag_and_missing_level_offsets() {
+    assert_eq!(
+        parse(&vec![0xcd, 0xab]),
+        Err(HeaderParseError::UnexpectedEndOfFile)
+    );
+}
+
+#[test]
+fn does_not_parse_valid_rlew_tag_and_too_short_level_offsets() {
+    assert_eq!(
+        parse(&vec![0xcd, 0xab, 0x00]),
+        Err(HeaderParseError::UnexpectedEndOfFile)
+    );
+}
+
+#[test]
 fn parses_valid_file_with_zero_offsets() {
     let mut rlew_tag = vec![0xcd, 0xab];
     let mut level_offsets = vec![0; 400];
