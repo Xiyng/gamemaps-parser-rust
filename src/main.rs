@@ -4,6 +4,7 @@ use std::env::args;
 use std::fs::File;
 use std::io::prelude::*;
 use gamemaps_parser::header;
+use gamemaps_parser::levels;
 
 fn main() {
     let mut args = args();
@@ -39,8 +40,32 @@ fn main() {
 
     println!("Header and level file read succesfully.");
 
-    match header::parse(&header_data) { // to see whether it runs without errors
-        Ok(_)  => println!("Header file parsed successfully."),
-        Err(_) => println!("Error while parsing the header file.")
+    let header_data = match header::parse(&header_data) { // to see whether it runs without errors
+        Ok(header_data)  => {
+            println!("Header file parsed successfully.");
+            header_data
+        },
+        Err(_) => {
+            println!("Error while parsing the header file.");
+            return;
+        }
     };
+
+    let mut levels_parsed_successfully = 0;
+    for level_offset in header_data.level_offsets.iter() {
+        match levels::parse(&level_data, *level_offset) {
+            Ok(_) => levels_parsed_successfully += 1,
+            Err(_) => {
+                println!(
+                    "Parsing level data failed for level {}.",
+                    levels_parsed_successfully + 1
+                );
+                return;
+            }
+        }
+    }
+    println!(
+        "Parsed level data successfully for {} levels.",
+        levels_parsed_successfully
+    );
 }
