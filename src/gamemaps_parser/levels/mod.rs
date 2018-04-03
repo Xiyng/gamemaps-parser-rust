@@ -33,7 +33,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
         planes.push(Plane { data: raw_plane_data });
     }
 
-    let width_offset = offset_usize + (planes_num + 1) * 6;
+    let width_offset = offset_usize + planes_num * 6;
     let width = LittleEndian::read_u16(
         &data[width_offset..(width_offset + 2)]
     );
