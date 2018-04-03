@@ -3,6 +3,7 @@ mod tests;
 
 extern crate byteorder;
 
+use std::ffi::CStr;
 use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
@@ -43,10 +44,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
         &data[height_offset..(height_offset + 2)]
     );
 
-    let name_offset = height_offset + 2;
-    let name = String::from_utf8(
-        data[name_offset..(name_offset + 16)].to_vec()
-    ).map_err(|_| LevelParseError::InvalidName)?;
+    let name = parse_name(&data, height_offset + 2)?;
 
     Ok(Level {
         name: name,
@@ -54,6 +52,17 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
         height: height,
         planes: planes
     })
+}
+
+fn parse_name(data: &Vec<u8>, offset: usize) -> Result<String, LevelParseError> {
+    let null_index = data[offset..(offset + 16)]
+        .iter()
+        .position(|&b| b == 0)
+        .ok_or(LevelParseError::InvalidName)?;
+    let name_bytes_with_null = &data[offset..(offset + null_index + 1)];
+    Ok(CStr::from_bytes_with_nul(name_bytes_with_null).map_err(|_|
+        LevelParseError::InvalidName
+    )?.to_str().map_err(|_| LevelParseError::InvalidName)?.to_string())
 }
 
 #[derive(Debug, PartialEq)]
