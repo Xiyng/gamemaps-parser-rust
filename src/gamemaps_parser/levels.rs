@@ -18,7 +18,8 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             &data[plane_length_offset..(plane_length_offset + 2)]
         ) as usize;
 
-        let mut raw_plane_data = Vec::with_capacity(plane_length_raw);
+        // TODO: Verify that plane_length_raw is even.
+        let mut raw_plane_data = vec!(0; plane_length_raw / 2);
         LittleEndian::read_u16_into(
             &data[plane_offset..(plane_offset + plane_length_raw)],
             &mut raw_plane_data
