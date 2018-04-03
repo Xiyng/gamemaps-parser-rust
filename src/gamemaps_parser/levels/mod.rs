@@ -16,7 +16,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             &data[plane_offset_offset..(plane_offset_offset + 4)]
         ) as usize;
 
-        let plane_length_offset = offset_usize + (planes_num - i) * 4 + i * 2;
+        let plane_length_offset = offset_usize + planes_num * 4 + i * 2;
         let plane_length_raw = LittleEndian::read_u16(
             &data[plane_length_offset..(plane_length_offset + 2)]
         ) as usize;
