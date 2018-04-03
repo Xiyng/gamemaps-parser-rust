@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 extern crate byteorder;
 
 use self::byteorder::*;
@@ -53,6 +56,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     })
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Level {
     pub name: String,
     pub width: u16,
@@ -60,10 +64,12 @@ pub struct Level {
     pub planes: Vec<Plane>
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Plane {
     pub data: Vec<u16>
 }
 
+#[derive(Debug, PartialEq)]
 pub enum LevelParseError {
     InvalidName
 }
