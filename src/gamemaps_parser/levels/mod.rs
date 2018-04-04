@@ -7,6 +7,14 @@ use std::ffi::CStr;
 use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
+    let magic_str = "TED5v1.0";
+    let actual_str = unsafe {
+        String::from_utf8_unchecked(data[0..magic_str.len()].to_vec())
+    };
+    if  magic_str != actual_str {
+        return Err(LevelParseError::InvalidMagicString(actual_str.to_string()));
+    }
+
     let offset_usize = offset as usize;
 
     let planes_num = 3;
@@ -80,5 +88,6 @@ pub struct Plane {
 
 #[derive(Debug, PartialEq)]
 pub enum LevelParseError {
+    InvalidMagicString(String),
     InvalidName
 }
