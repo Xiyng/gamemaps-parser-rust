@@ -7,35 +7,19 @@ use std::ffi::CStr;
 use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
-    let magic_str = "TED5v1.0";
-    let actual_str = unsafe {
-        String::from_utf8_unchecked(data[0..magic_str.len()].to_vec())
-    };
-    if  magic_str != actual_str {
-        return Err(LevelParseError::InvalidMagicString(actual_str.to_string()));
-    }
+    validate_magic_str(&data)?;
 
     let offset_usize = offset as usize;
 
     let planes_num = 3;
     let mut planes = Vec::with_capacity(planes_num);
     for i in 0..planes_num {
-        let plane_offset_offset = offset_usize + i * 4;
-        let plane_offset = LittleEndian::read_u32(
-            &data[plane_offset_offset..(plane_offset_offset + 4)]
-        ) as usize;
-
-        let plane_length_offset = offset_usize + planes_num * 4 + i * 2;
-        let plane_length_raw = LittleEndian::read_u16(
-            &data[plane_length_offset..(plane_length_offset + 2)]
-        ) as usize;
-
-        // TODO: Verify that plane_length_raw is even.
-        let mut raw_plane_data = vec!(0; plane_length_raw / 2);
-        LittleEndian::read_u16_into(
-            &data[plane_offset..(plane_offset + plane_length_raw)],
-            &mut raw_plane_data
-        );
+        let raw_plane_data = read_raw_plane_data(
+            data,
+            offset_usize,
+            planes_num,
+            i
+        )?;
 
         // We'll skip uncompressing plane data for now and hope it's
         // uncompressed.
@@ -43,11 +27,17 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     }
 
     let width_offset = offset_usize + planes_num * 6;
+    if width_offset >= data.len() {
+        return Err(LevelParseError::UnexpectedEndOfData);
+    }
     let width = LittleEndian::read_u16(
         &data[width_offset..(width_offset + 2)]
     );
 
     let height_offset = width_offset + 2;
+    if height_offset >= data.len() {
+        return Err(LevelParseError::UnexpectedEndOfData);
+    }
     let height = LittleEndian::read_u16(
         &data[height_offset..(height_offset + 2)]
     );
@@ -60,6 +50,55 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
         height: height,
         planes: planes
     })
+}
+
+fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
+    let magic_str = "TED5v1.0";
+
+    if data.len() < magic_str.len() {
+        return Err(LevelParseError::UnexpectedEndOfData);
+    }
+
+    let actual_str = unsafe {
+        String::from_utf8_unchecked(data[0..magic_str.len()].to_vec())
+    };
+    if  magic_str != actual_str {
+        return Err(LevelParseError::InvalidMagicString(actual_str.to_string()));
+    }
+
+    Ok(())
+}
+
+fn read_raw_plane_data(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> Result<Vec<u16>, LevelParseError> {
+    let plane_offset_offset = offset + plane_num * 4;
+    let plane_length_offset = offset + planes_num * 4 + plane_num * 2;
+
+    if plane_length_offset >= data.len() {
+        return Err(LevelParseError::UnexpectedEndOfData);
+    }
+
+    let plane_offset = LittleEndian::read_u32(
+        &data[plane_offset_offset..(plane_offset_offset + 4)]
+    ) as usize;
+
+    let plane_length_raw = LittleEndian::read_u16(
+        &data[plane_length_offset..(plane_length_offset + 2)]
+    ) as usize;
+
+    if plane_length_raw % 2 != 0 {
+        return Err(LevelParseError::InvalidPlaneLength {
+            plane: plane_num,
+            length: plane_length_raw
+        });
+    }
+
+    let mut raw_plane_data = vec!(0; plane_length_raw / 2);
+    LittleEndian::read_u16_into(
+        &data[plane_offset..(plane_offset + plane_length_raw)],
+        &mut raw_plane_data
+    );
+
+    Ok(raw_plane_data)
 }
 
 fn parse_name(data: &Vec<u8>, offset: usize) -> Result<String, LevelParseError> {
@@ -88,6 +127,8 @@ pub struct Plane {
 
 #[derive(Debug, PartialEq)]
 pub enum LevelParseError {
+    UnexpectedEndOfData,
     InvalidMagicString(String),
+    InvalidPlaneLength { plane: usize, length: usize },
     InvalidName
 }
