@@ -59,8 +59,9 @@ fn create_empty_test_data(offset: u32) -> Vec<u8> {
     test_data.write_u16::<LittleEndian>(64).unwrap(); // width
     test_data.write_u16::<LittleEndian>(64).unwrap(); // height
 
-    test_data.append(&mut vec![0x74, 0x65, 0x73, 0x74]); // name = test
-    test_data.append(&mut vec![0; 12]); // null characters for name
+    let name = "test";
+    test_data.append(&mut name.bytes().collect()); // name
+    test_data.append(&mut vec![0; 16 - name.len()]); // null characters for name
 
     test_data
 }
