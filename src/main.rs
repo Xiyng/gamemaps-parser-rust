@@ -55,10 +55,11 @@ fn main() {
     for level_offset in header_data.level_offsets.iter() {
         match levels::parse(&level_data, *level_offset) {
             Ok(_) => levels_parsed_successfully += 1,
-            Err(_) => {
+            Err(e) => {
                 println!(
-                    "Parsing level data failed for level {}.",
-                    levels_parsed_successfully + 1
+                    "Parsing level data failed for level {}. Reason: {}.",
+                    levels_parsed_successfully + 1,
+                    e
                 );
                 return;
             }
