@@ -4,6 +4,7 @@ mod tests;
 extern crate byteorder;
 
 use std::ffi::CStr;
+use std::fmt;
 use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
@@ -131,4 +132,20 @@ pub enum LevelParseError {
     InvalidMagicString(String),
     InvalidPlaneLength { plane: usize, length: usize },
     InvalidName
+}
+
+impl fmt::Display for LevelParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &LevelParseError::UnexpectedEndOfData =>
+                write!(f, "Unexpected end of data"),
+            &LevelParseError::InvalidMagicString(ref s) =>
+                write!(f, "Invalid magic string: {}", s),
+            &LevelParseError::InvalidPlaneLength { plane, length } =>
+                write!(f, "Invalid plane length for plane {}: {}", plane, length),
+            &LevelParseError::InvalidName =>
+                write!(f, "Invalid level name")
+        }?;
+        Ok(())
+    }
 }
