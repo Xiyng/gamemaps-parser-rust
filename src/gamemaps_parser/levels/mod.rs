@@ -5,6 +5,7 @@ extern crate byteorder;
 
 use std::ffi::CStr;
 use std::fmt;
+use gamemaps_parser::rlew;
 use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
@@ -21,10 +22,16 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             planes_num,
             i
         )?;
+        let rlew_decoded_data = rlew::decode(&raw_plane_data).map_err(|e|
+            LevelParseError::RlewDecodeError {
+                plane: i,
+                error: e
+            }
+        )?;
 
         // We'll skip uncompressing plane data for now and hope it's
         // uncompressed.
-        planes.push(Plane { data: raw_plane_data });
+        planes.push(Plane { data: rlew_decoded_data });
     }
 
     let width_offset = offset_usize + planes_num * 6;
@@ -70,7 +77,7 @@ fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
     Ok(())
 }
 
-fn read_raw_plane_data(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> Result<Vec<u16>, LevelParseError> {
+fn read_raw_plane_data(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> Result<Vec<u8>, LevelParseError> {
     let plane_offset_offset = offset + plane_num * 4;
     let plane_length_offset = offset + planes_num * 4 + plane_num * 2;
 
@@ -93,13 +100,14 @@ fn read_raw_plane_data(data: &Vec<u8>, offset: usize, planes_num: usize, plane_n
         });
     }
 
-    let mut raw_plane_data = vec!(0; plane_length_raw / 2);
-    LittleEndian::read_u16_into(
-        &data[plane_offset..(plane_offset + plane_length_raw)],
-        &mut raw_plane_data
-    );
+    // let mut raw_plane_data = vec!(0; plane_length_raw / 2);
+    // LittleEndian::read_u16_into(
+    //     &data[plane_offset..(plane_offset + plane_length_raw)],
+    //     &mut raw_plane_data
+    // );
 
-    Ok(raw_plane_data)
+    // Ok(raw_plane_data)
+    Ok(data[plane_offset..(plane_offset + plane_length_raw)].to_vec())
 }
 
 fn parse_name(data: &Vec<u8>, offset: usize) -> Result<String, LevelParseError> {
@@ -131,6 +139,7 @@ pub enum LevelParseError {
     UnexpectedEndOfData,
     InvalidMagicString(String),
     InvalidPlaneLength { plane: usize, length: usize },
+    RlewDecodeError { plane: usize, error: rlew::RlewDecodeError },
     InvalidName
 }
 
@@ -143,6 +152,8 @@ impl fmt::Display for LevelParseError {
                 write!(f, "Invalid magic string: {}", s),
             &LevelParseError::InvalidPlaneLength { plane, length } =>
                 write!(f, "Invalid plane length for plane {}: {}", plane, length),
+            &LevelParseError::RlewDecodeError { plane, ref error } =>
+                write!(f, "RLEW decode error for plane {}: {}", plane, error),
             &LevelParseError::InvalidName =>
                 write!(f, "Invalid level name")
         }?;

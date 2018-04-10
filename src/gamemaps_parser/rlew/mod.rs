@@ -3,6 +3,7 @@ mod tests;
 
 extern crate byteorder;
 
+use std::fmt;
 use self::byteorder::*;
 
 pub fn decode(data: &Vec<u8>) -> Result<Vec<u16>, RlewDecodeError> {
@@ -24,4 +25,13 @@ pub fn decode(data: &Vec<u8>) -> Result<Vec<u16>, RlewDecodeError> {
 #[derive(Debug, PartialEq)]
 pub enum RlewDecodeError {
     InvalidLength(usize)
+}
+
+impl fmt::Display for RlewDecodeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            RlewDecodeError::InvalidLength(length) =>
+                write!(f, "Invalid length: {}", length)
+        }
+    }
 }
