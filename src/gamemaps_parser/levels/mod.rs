@@ -100,13 +100,6 @@ fn read_raw_plane_data(data: &Vec<u8>, offset: usize, planes_num: usize, plane_n
         });
     }
 
-    // let mut raw_plane_data = vec!(0; plane_length_raw / 2);
-    // LittleEndian::read_u16_into(
-    //     &data[plane_offset..(plane_offset + plane_length_raw)],
-    //     &mut raw_plane_data
-    // );
-
-    // Ok(raw_plane_data)
     Ok(data[plane_offset..(plane_offset + plane_length_raw)].to_vec())
 }
 
