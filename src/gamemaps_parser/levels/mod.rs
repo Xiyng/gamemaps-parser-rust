@@ -145,16 +145,16 @@ pub enum LevelParseError {
 
 impl fmt::Display for LevelParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &LevelParseError::UnexpectedEndOfData =>
+        match *self {
+            LevelParseError::UnexpectedEndOfData =>
                 write!(f, "Unexpected end of data"),
-            &LevelParseError::InvalidMagicString(ref s) =>
+            LevelParseError::InvalidMagicString(ref s) =>
                 write!(f, "Invalid magic string: {}", s),
-            &LevelParseError::InvalidPlaneLength { plane, length } =>
+            LevelParseError::InvalidPlaneLength { plane, length } =>
                 write!(f, "Invalid plane length for plane {}: {}", plane, length),
-            &LevelParseError::RlewDecodeError { plane, ref error } =>
+            LevelParseError::RlewDecodeError { plane, ref error } =>
                 write!(f, "RLEW decode error for plane {}: {}", plane, error),
-            &LevelParseError::InvalidName =>
+            LevelParseError::InvalidName =>
                 write!(f, "Invalid level name")
         }?;
         Ok(())
