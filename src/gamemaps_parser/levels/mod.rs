@@ -29,8 +29,8 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             }
         )?;
 
-        // We'll skip uncompressing plane data for now and hope it's
-        // uncompressed.
+        // Let's do only RLEW decoding for now and add other decompression
+        // methods when we need them.
         planes.push(Plane { data: rlew_decoded_data });
     }
 
