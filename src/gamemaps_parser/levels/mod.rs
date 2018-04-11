@@ -5,7 +5,7 @@ extern crate byteorder;
 
 use std::ffi::CStr;
 use std::fmt;
-use gamemaps_parser::rlew;
+use gamemaps_parser::compression::rlew;
 use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
