@@ -7,16 +7,25 @@ use std::fmt;
 use self::byteorder::*;
 
 pub fn decode(data: &Vec<u8>, tag: u16) -> Result<Vec<u16>, RlewDecodeError> {
-    if data.len() % 4 != 0 {
+    if data.len() % 2 != 0 {
         return Err(RlewDecodeError::InvalidLength(data.len()));
     }
 
     let mut decoded = Vec::new();
-    for i in 0..data.len() / 4 {
-        let offset = 4 * i;
+    let mut i = 0;
+    while i < data.len() / 2 {
+        let offset = 2 * i;
         let x = LittleEndian::read_u16(&data[offset..(offset + 2)]);
+        let copy_wanted = x == tag;
+        if !copy_wanted {
+            decoded.push(x);
+            i += 1;
+            continue;
+        }
         let count = LittleEndian::read_u16(&data[(offset + 2)..(offset + 4)]);
-        decoded.append(&mut vec![x; count as usize]);
+        let value_to_copy = LittleEndian::read_u16(&data[(offset + 4)..(offset + 6)]);
+        decoded.append(&mut vec![value_to_copy; count as usize]);
+        i += 3;
     }
 
     Ok(decoded)
