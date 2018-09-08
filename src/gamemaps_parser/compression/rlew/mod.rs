@@ -22,6 +22,9 @@ pub fn decode(data: &Vec<u8>, tag: u16) -> Result<Vec<u16>, RlewDecodeError> {
             i += 1;
             continue;
         }
+        if i + 2 >= data.len() / 2 {
+            return Err(RlewDecodeError::UnexpectedEndOfData);
+        }
         let count = LittleEndian::read_u16(&data[(offset + 2)..(offset + 4)]);
         let value_to_copy = LittleEndian::read_u16(&data[(offset + 4)..(offset + 6)]);
         decoded.append(&mut vec![value_to_copy; count as usize]);
@@ -33,14 +36,17 @@ pub fn decode(data: &Vec<u8>, tag: u16) -> Result<Vec<u16>, RlewDecodeError> {
 
 #[derive(Debug, PartialEq)]
 pub enum RlewDecodeError {
-    InvalidLength(usize)
+    InvalidLength(usize),
+    UnexpectedEndOfData
 }
 
 impl fmt::Display for RlewDecodeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             RlewDecodeError::InvalidLength(length) =>
-                write!(f, "Invalid length: {}", length)
+                write!(f, "Invalid length: {}", length),
+            RlewDecodeError::UnexpectedEndOfData =>
+                write!(f, "Unexpected end of data")
         }
     }
 }
