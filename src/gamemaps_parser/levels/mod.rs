@@ -22,7 +22,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             planes_num,
             i
         )?;
-        let rlew_decoded_data = rlew::decode(&raw_plane_data).map_err(|e|
+        let rlew_decoded_data = rlew::decode(&raw_plane_data, 0xabcd).map_err(|e|
             LevelParseError::RlewDecodeError {
                 plane: i,
                 error: e

@@ -6,7 +6,7 @@ extern crate byteorder;
 use std::fmt;
 use self::byteorder::*;
 
-pub fn decode(data: &Vec<u8>) -> Result<Vec<u16>, RlewDecodeError> {
+pub fn decode(data: &Vec<u8>, tag: u16) -> Result<Vec<u16>, RlewDecodeError> {
     if data.len() % 4 != 0 {
         return Err(RlewDecodeError::InvalidLength(data.len()));
     }
