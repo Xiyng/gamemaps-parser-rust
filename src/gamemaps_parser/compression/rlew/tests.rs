@@ -14,7 +14,10 @@ struct SuccessTestData {
 fn assert_success(test_data: SuccessTestData) {
     let mut compressed_u8 = Vec::with_capacity(2 * test_data.compressed.len());
     for x in test_data.compressed {
-        compressed_u8.write_u16::<LittleEndian>(x);
+        match compressed_u8.write_u16::<LittleEndian>(x) {
+            Err(_) => assert!(false),
+            _ => {}
+        }
     }
     let actual = decode(&compressed_u8, RLEW_TAG);
     let expected = Ok(test_data.decompressed);
@@ -24,7 +27,7 @@ fn assert_success(test_data: SuccessTestData) {
 #[test]
 fn decodes_a_single_repeated_value() {
     assert_success(SuccessTestData {
-        compressed: vec![RLEW_TAG, 0xabcd, 2],
+        compressed: vec![RLEW_TAG, 2, 0xabcd],
         decompressed: vec![0xabcd, 0xabcd]
     })
 }
@@ -32,7 +35,7 @@ fn decodes_a_single_repeated_value() {
 #[test]
 fn decodes_two_repeated_values() {
     assert_success(SuccessTestData {
-        compressed: vec![RLEW_TAG, 0xabcd, 2, RLEW_TAG, 0xbcde, 3],
+        compressed: vec![RLEW_TAG, 2, 0xabcd, RLEW_TAG, 3, 0xbcde],
         decompressed: vec![0xabcd, 0xabcd, 0xbcde, 0xbcde, 0xbcde]
     })
 }
