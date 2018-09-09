@@ -18,6 +18,17 @@ pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
         let current = data[i];
         let next = data[i + 1];
         i += 2;
+
+        if current == 0x00 && (next == 0xa7 || next == 0xa8) {
+            if i >= data.len() {
+                return Err(DecompressionError::InvalidLength(data.len()));
+            }
+            let second_byte = data[i];
+            decompressed.push(LittleEndian::read_u16(&vec![next, second_byte]));
+            i += 1;
+            continue;
+        }
+
         match next {
             0xa7 => {
                 if i >= data.len() {
