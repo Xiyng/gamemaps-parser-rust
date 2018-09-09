@@ -5,7 +5,7 @@ extern crate byteorder;
 
 use std::ffi::CStr;
 use std::fmt;
-use gamemaps_parser::compression::rlew;
+use gamemaps_parser::compression::{carmack, rlew};
 use self::byteorder::*;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
@@ -28,10 +28,17 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
                 error: e
             }
         )?;
+        let mut rlew_decoded_data_u8 = Vec::with_capacity(2 * rlew_decoded_data.len());
+        LittleEndian::write_u16_into(&rlew_decoded_data, &mut rlew_decoded_data_u8);
+        let carmack_decompressed_data = carmack::decompress(&rlew_decoded_data_u8).map_err(|e|
+            LevelParseError::CarmackDecompressionError {
+                plane: i,
+                error: e
+            }
+        )?;
 
-        // Let's do only RLEW decoding for now and add other decompression
-        // methods when we need them.
-        planes.push(Plane { data: rlew_decoded_data });
+        // TODO: Do Carmack decompression only when it's needed.
+        planes.push(Plane { data: carmack_decompressed_data });
     }
 
     let width_offset = offset_usize + planes_num * 6;
@@ -132,6 +139,7 @@ pub enum LevelParseError {
     UnexpectedEndOfData,
     InvalidMagicString(String),
     InvalidPlaneLength { plane: usize, length: usize },
+    CarmackDecompressionError { plane: usize, error: carmack::DecompressionError },
     RlewDecodeError { plane: usize, error: rlew::RlewDecodeError },
     InvalidName
 }
@@ -145,6 +153,8 @@ impl fmt::Display for LevelParseError {
                 write!(f, "Invalid magic string: {}", s),
             LevelParseError::InvalidPlaneLength { plane, length } =>
                 write!(f, "Invalid plane length for plane {}: {}", plane, length),
+            LevelParseError::CarmackDecompressionError { plane, ref error } =>
+                write!(f, "Carmack decompression error for plane {}: {}", plane, error),
             LevelParseError::RlewDecodeError { plane, ref error } =>
                 write!(f, "RLEW decode error for plane {}: {}", plane, error),
             LevelParseError::InvalidName =>
