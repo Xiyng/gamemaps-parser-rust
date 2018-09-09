@@ -36,7 +36,13 @@ pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
                 }
 
                 let repeat_offset = 2 * data[i]; // as words, not bytes
-                let repeat_start = i - repeat_offset as usize; // TODO: Check for range.
+                if repeat_offset as usize > i {
+                    return Err(DecompressionError::InvalidNearPointerOffset {
+                        index: i,
+                        offset: repeat_offset
+                    });
+                }
+                let repeat_start = i - repeat_offset as usize;
                 let mut words = vec![0; current as usize];
                 LittleEndian::read_u16_into(
                     &data[repeat_start..repeat_start + (2 * current) as usize],
@@ -68,5 +74,9 @@ pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
 
 #[derive(Debug, PartialEq)]
 pub enum DecompressionError {
-    InvalidLength(usize)
+    InvalidLength(usize),
+    InvalidNearPointerOffset {
+        index: usize,
+        offset: u8
+    }
 }
