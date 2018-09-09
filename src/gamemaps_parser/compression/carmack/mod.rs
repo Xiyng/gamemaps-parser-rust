@@ -3,7 +3,7 @@ mod tests;
 
 extern crate byteorder;
 
-// use std::fmt;
+use std::fmt;
 use self::byteorder::*;
 
 pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
@@ -78,5 +78,16 @@ pub enum DecompressionError {
     InvalidNearPointerOffset {
         index: usize,
         offset: u8
+    }
+}
+
+impl fmt::Display for DecompressionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DecompressionError::InvalidLength(length) =>
+                write!(f, "Invalid length: {}", length),
+            DecompressionError::InvalidNearPointerOffset { index, offset } =>
+                write!(f, "Invalid near pointer offset for index {}: {}", index, offset)
+        }
     }
 }
