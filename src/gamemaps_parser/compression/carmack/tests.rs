@@ -44,3 +44,11 @@ fn decompresses_with_one_far_pointer() {
         decompressed: vec![0x00cd, 0x00cd]
     })
 }
+
+#[test]
+fn decompresses_data_with_one_near_and_one_far_pointer() {
+    assert_success(SuccessTestData {
+        compressed: vec![0xcd, 0x00, 0x01, 0xa7, 0x02, 0xde, 0x00, 0x01, 0xa8, 0x00, 0x00],
+        decompressed: vec![0x00cd ,0x00cd, 0x00de, 0x00cd]
+    })
+}
