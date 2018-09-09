@@ -39,7 +39,14 @@ pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
                     return Err(DecompressionError::InvalidLength(data.len()));
                 }
 
-                unimplemented!()
+                let repeat_start = 2 * LittleEndian::read_u16(&data[i..(i + 2)]) as usize;
+                let mut words = vec![0; current as usize];
+                LittleEndian::read_u16_into(
+                    &data[repeat_start..repeat_start + (2 * current) as usize],
+                    &mut words
+                );
+                decompressed.append(&mut words);
+                i += 2;
             },
             _ => decompressed.push(LittleEndian::read_u16(&vec![current, next]))
         }
