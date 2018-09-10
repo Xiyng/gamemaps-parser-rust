@@ -27,7 +27,7 @@ fn assert_success(test_data: SuccessTestData) {
 #[test]
 fn decodes_a_single_repeated_value() {
     assert_success(SuccessTestData {
-        compressed: vec![RLEW_TAG, 2, 0xabcd],
+        compressed: vec![0x04, 0x00, 0x00, 0x00, RLEW_TAG, 2, 0xabcd],
         decompressed: vec![0xabcd, 0xabcd]
     })
 }
@@ -35,7 +35,7 @@ fn decodes_a_single_repeated_value() {
 #[test]
 fn decodes_two_repeated_values() {
     assert_success(SuccessTestData {
-        compressed: vec![RLEW_TAG, 2, 0xabcd, RLEW_TAG, 3, 0xbcde],
+        compressed: vec![0x0a, 0x00, 0x00, 0x00, RLEW_TAG, 2, 0xabcd, RLEW_TAG, 3, 0xbcde],
         decompressed: vec![0xabcd, 0xabcd, 0xbcde, 0xbcde, 0xbcde]
     })
 }
