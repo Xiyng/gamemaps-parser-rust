@@ -41,7 +41,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
         )?;
 
         // TODO: Do Carmack decompression only when it's needed.
-        planes.push(Plane { data: carmack_decompressed_data });
+        planes.push(Plane { data: rlew_decoded_data });
     }
 
     let width_offset = offset_usize + planes_num * 6;
