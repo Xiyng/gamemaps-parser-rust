@@ -22,16 +22,19 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             planes_num,
             i
         )?;
-        let rlew_decoded_data = rlew::decode(&raw_plane_data, 0xabcd).map_err(|e|
-            LevelParseError::RlewDecodeError {
+        let carmack_decompressed_data = carmack::decompress(&raw_plane_data).map_err(|e|
+            LevelParseError::CarmackDecompressionError {
                 plane: i,
                 error: e
             }
         )?;
-        let mut rlew_decoded_data_u8 = vec![0; 2 * rlew_decoded_data.len()];
-        LittleEndian::write_u16_into(&rlew_decoded_data, &mut rlew_decoded_data_u8);
-        let carmack_decompressed_data = carmack::decompress(&rlew_decoded_data_u8).map_err(|e|
-            LevelParseError::CarmackDecompressionError {
+        let mut carmack_decompressed_data_u8 = vec![0; 2 * carmack_decompressed_data.len()];
+        LittleEndian::write_u16_into(
+            &carmack_decompressed_data,
+            &mut carmack_decompressed_data_u8
+        );
+        let rlew_decoded_data = rlew::decode(&carmack_decompressed_data_u8, 0xabcd).map_err(|e|
+            LevelParseError::RlewDecodeError {
                 plane: i,
                 error: e
             }
