@@ -7,10 +7,11 @@ use std::fmt;
 use self::byteorder::*;
 
 pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
+    let decompressed_length_bytes = LittleEndian::read_u16(&data[0..2]) as usize;
     let mut decompressed = Vec::new();
 
-    let mut i  = 0;
-    while i < data.len() {
+    let mut i  = 2;
+    while decompressed.len() < 2 * decompressed_length_bytes && i < data.len() {
         if i + 1 >= data.len() {
             return Err(DecompressionError::InvalidLength(data.len()));
         }

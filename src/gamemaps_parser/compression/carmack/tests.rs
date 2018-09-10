@@ -14,17 +14,9 @@ fn assert_success(test_data: SuccessTestData) {
 }
 
 #[test]
-fn works_with_empty_data() {
-    assert_success(SuccessTestData {
-        compressed: vec![],
-        decompressed: vec![]
-    })
-}
-
-#[test]
 fn does_not_modify_uncompressed_data() {
     assert_success(SuccessTestData {
-        compressed: vec![0xcd, 0x00],
+        compressed: vec![0x01, 0x00, 0xcd, 0x00],
         decompressed: vec![0x00cd]
     })
 }
@@ -32,7 +24,7 @@ fn does_not_modify_uncompressed_data() {
 #[test]
 fn decompresses_with_one_near_pointer() {
     assert_success(SuccessTestData {
-        compressed: vec![0xcd, 0x00, 0x01, 0xa7, 0x02],
+        compressed: vec![0x02, 0x00, 0xcd, 0x00, 0x01, 0xa7, 0x02],
         decompressed: vec![0x00cd, 0x00cd]
     })
 }
@@ -40,7 +32,7 @@ fn decompresses_with_one_near_pointer() {
 #[test]
 fn decompresses_with_one_far_pointer() {
     assert_success(SuccessTestData {
-        compressed: vec![0xcd, 0x00, 0x01, 0xa8, 0x00, 0x00],
+        compressed: vec![0x04, 0x00, 0xcd, 0x00, 0x01, 0xa8, 0x01, 0x00],
         decompressed: vec![0x00cd, 0x00cd]
     })
 }
@@ -48,7 +40,7 @@ fn decompresses_with_one_far_pointer() {
 #[test]
 fn decompresses_data_with_one_near_and_one_far_pointer() {
     assert_success(SuccessTestData {
-        compressed: vec![0xcd, 0x00, 0x01, 0xa7, 0x02, 0xde, 0x00, 0x01, 0xa8, 0x00, 0x00],
+        compressed: vec![0x08, 0x00, 0xcd, 0x00, 0x01, 0xa7, 0x02, 0xde, 0x00, 0x01, 0xa8, 0x01, 0x00],
         decompressed: vec![0x00cd ,0x00cd, 0x00de, 0x00cd]
     })
 }
@@ -56,7 +48,7 @@ fn decompresses_data_with_one_near_and_one_far_pointer() {
 #[test]
 fn decompresses_data_with_high_byte_0xa7() {
     assert_success(SuccessTestData {
-        compressed: vec![0x00, 0xa7, 0xcd],
+        compressed: vec![0x02, 0x00, 0x00, 0xa7, 0xcd],
         decompressed: vec![0xcda7]
     })
 }
