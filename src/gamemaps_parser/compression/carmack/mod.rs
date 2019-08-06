@@ -92,7 +92,7 @@ impl fmt::Display for DecompressionError {
             DecompressionError::InvalidLength(length) =>
                 write!(f, "Invalid length: {}", length),
             DecompressionError::InvalidNearPointerOffset { index, offset } =>
-                write!(f, "Invalid near pointer offset for index {}: {}", index, offset)
+                write!(f, "Invalid near pointer offset for index 0x{:x?}: 0x{:x?} words", index, offset)
         }
     }
 }
