@@ -6,6 +6,9 @@ extern crate byteorder;
 use std::fmt;
 use self::byteorder::*;
 
+const NEAR_SIGNAL: u8 = 0xa7;
+const FAR_SIGNAL: u8 = 0xa8;
+
 pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
     let decompressed_length_bytes = LittleEndian::read_u16(&data[0..2]) as usize;
     let mut decompressed = Vec::new();
@@ -20,7 +23,7 @@ pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
         let next = data[i + 1];
         i += 2;
 
-        if current == 0x00 && (next == 0xa7 || next == 0xa8) {
+        if current == 0x00 && (next == NEAR_SIGNAL || next == FAR_SIGNAL) {
             if i >= data.len() {
                 return Err(DecompressionError::InvalidLength(data.len()));
             }
@@ -31,7 +34,7 @@ pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
         }
 
         match next {
-            0xa7 => {
+            NEAR_SIGNAL => {
                 if i >= data.len() {
                     return Err(DecompressionError::InvalidLength(data.len()));
                 }
@@ -53,7 +56,7 @@ pub fn decompress(data: &Vec<u8>) -> Result<Vec<u16>, DecompressionError> {
                 decompressed.append(&mut words);
                 i += 1;
             },
-            0xa8 => {
+            FAR_SIGNAL => {
                 if i + 1 >= data.len() {
                     return Err(DecompressionError::InvalidLength(data.len()));
                 }
