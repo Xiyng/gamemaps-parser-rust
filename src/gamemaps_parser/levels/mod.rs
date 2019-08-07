@@ -16,13 +16,8 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     let planes_num = 3;
     let mut planes = Vec::with_capacity(planes_num);
     for i in 0..planes_num {
-        let raw_plane_data = read_raw_plane_data(
-            data,
-            offset_usize,
-            planes_num,
-            i
-        )?;
-        let carmack_decompressed_data = carmack::decompress(&raw_plane_data).map_err(|e|
+        let plane_header = read_plane_header(data, offset_usize, planes_num, i);
+        let carmack_decompressed_data = carmack::decompress(&data, plane_header.offset).map_err(|e|
             LevelParseError::CarmackDecompressionError {
                 plane: i,
                 error: e
@@ -87,30 +82,24 @@ fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
     Ok(())
 }
 
-fn read_raw_plane_data(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> Result<Vec<u8>, LevelParseError> {
+fn read_plane_headers(data: &Vec<u8>, offset: usize, planes_num: usize) -> Vec<PlaneHeader> {
+    let mut plane_headers = vec![];
+    for plane_num in 0..planes_num {
+        let plane_header = read_plane_header(&data, offset, planes_num, plane_num);
+        plane_headers.push(plane_header);
+    }
+    plane_headers
+}
+
+fn read_plane_header(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> PlaneHeader {
     let plane_offset_offset = offset + plane_num * 4;
     let plane_length_offset = offset + planes_num * 4 + plane_num * 2;
-
-    if plane_length_offset >= data.len() {
-        return Err(LevelParseError::UnexpectedEndOfData);
+    let plane_offset = LittleEndian::read_u32(&data[plane_offset_offset..(plane_offset_offset + 4)]);
+    let plane_uncompressed_length = LittleEndian::read_u16(&data[plane_offset_offset..(plane_offset_offset + 4)]);
+    PlaneHeader {
+        offset: plane_offset,
+        compressed_length: plane_uncompressed_length
     }
-
-    let plane_offset = LittleEndian::read_u32(
-        &data[plane_offset_offset..(plane_offset_offset + 4)]
-    ) as usize;
-
-    let plane_length_raw = LittleEndian::read_u16(
-        &data[plane_length_offset..(plane_length_offset + 2)]
-    ) as usize;
-
-    if plane_length_raw % 2 != 0 {
-        return Err(LevelParseError::InvalidPlaneLength {
-            plane: plane_num,
-            length: plane_length_raw
-        });
-    }
-
-    Ok(data[plane_offset..(plane_offset + plane_length_raw)].to_vec())
 }
 
 fn parse_name(data: &Vec<u8>, offset: usize) -> Result<String, LevelParseError> {
@@ -122,6 +111,11 @@ fn parse_name(data: &Vec<u8>, offset: usize) -> Result<String, LevelParseError> 
     Ok(CStr::from_bytes_with_nul(name_bytes_with_null).map_err(|_|
         LevelParseError::InvalidName
     )?.to_str().map_err(|_| LevelParseError::InvalidName)?.to_string())
+}
+
+struct PlaneHeader {
+    offset: u32,
+    compressed_length: u16
 }
 
 #[derive(Debug, PartialEq)]
