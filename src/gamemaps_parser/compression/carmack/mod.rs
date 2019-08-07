@@ -43,9 +43,10 @@ pub fn decompress(data: &Vec<u8>, start_offset: usize) -> Result<Vec<u16>, Decom
                 let repeat_start = decompressed.len() - 1 - offset;
                 let repeat_end = repeat_start + (current as usize);
                 if repeat_end > decompressed.len() {
-                    return Err(DecompressionError::InvalidNearPointerOffset {
+                    return Err(DecompressionError::NearPointerOffsetOutOfBounds {
                         decompressed_length: decompressed.len(),
-                        offset: current
+                        offset: offset as u8,
+                        word_count: current
                     })
                 }
                 let mut words = decompressed[repeat_start..repeat_end].to_vec();
@@ -60,6 +61,13 @@ pub fn decompress(data: &Vec<u8>, start_offset: usize) -> Result<Vec<u16>, Decom
                 let offset = LittleEndian::read_u16(&data[i..(i + 2)]) as usize;
                 let repeat_start = offset;
                 let repeat_end = offset + (current as usize);
+                if repeat_end > decompressed.len() {
+                    return Err(DecompressionError::FarPointerOffsetOutOfBounds {
+                        decompressed_length: decompressed.len(),
+                        offset: offset as u16,
+                        word_count: current
+                    })
+                }
                 let mut words = decompressed[repeat_start..repeat_end].to_vec();
                 decompressed.append(&mut words);
                 i += 2;
@@ -74,13 +82,15 @@ pub fn decompress(data: &Vec<u8>, start_offset: usize) -> Result<Vec<u16>, Decom
 #[derive(Debug, PartialEq)]
 pub enum DecompressionError {
     InvalidLength(usize),
-    InvalidNearPointerOffset {
+    NearPointerOffsetOutOfBounds {
         decompressed_length: usize,
-        offset: u8
+        offset: u8,
+        word_count: u8
     },
-    InvalidFarPointerOffset {
+    FarPointerOffsetOutOfBounds {
         decompressed_length: usize,
-        offset: u8
+        offset: u16,
+        word_count: u8
     }
 }
 
@@ -89,10 +99,16 @@ impl fmt::Display for DecompressionError {
         match *self {
             DecompressionError::InvalidLength(length) =>
                 write!(f, "Invalid length: {}", length),
-            DecompressionError::InvalidNearPointerOffset { decompressed_length, offset } =>
-                write!(f, "Invalid near pointer offset at decompressed length {}: 0x{:x?} words", decompressed_length, offset),
-            DecompressionError::InvalidFarPointerOffset { decompressed_length, offset } =>
-                write!(f, "Invalid far pointer offset at decompressed length {}: 0x{:x?} words", decompressed_length, offset)
+            DecompressionError::NearPointerOffsetOutOfBounds { decompressed_length, offset, word_count } =>
+                write!(f,
+                "Near pointer decompression out of bounds after {} decompressed words: 0x{:x?} words to decompress with an offset of 0x{:x?} words",
+                decompressed_length, word_count, offset
+            ),
+            DecompressionError::FarPointerOffsetOutOfBounds { decompressed_length, offset, word_count } =>
+                write!(f,
+                "Far pointer decompression out of bounds after {} decompressed words: 0x{:x?} words to decompress with an offset of 0x{:x?} words",
+                decompressed_length, word_count, offset
+            )
         }
     }
 }
