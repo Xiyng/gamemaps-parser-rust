@@ -39,20 +39,8 @@ pub fn decompress(data: &Vec<u8>, start_offset: usize) -> Result<Vec<u16>, Decom
                     return Err(DecompressionError::InvalidLength(data.len()));
                 }
 
-                let repeat_offset_words = data[i];
-                let repeat_offset_bytes = 2 * (repeat_offset_words as usize);
-                if repeat_offset_bytes as usize > i {
-                    return Err(DecompressionError::InvalidNearPointerOffset {
-                        index: i,
-                        offset: repeat_offset_words
-                    });
-                }
-                let repeat_start = i - repeat_offset_bytes as usize;
-                let mut words = vec![0; current as usize];
-                LittleEndian::read_u16_into(
-                    &data[repeat_start..repeat_start + (2 * current) as usize],
-                    &mut words
-                );
+                let repeat_start = decompressed.len() - 1;
+                let mut words = decompressed[repeat_start..repeat_start + (current as usize)].to_vec();
                 decompressed.append(&mut words);
                 i += 1;
             },
@@ -61,12 +49,8 @@ pub fn decompress(data: &Vec<u8>, start_offset: usize) -> Result<Vec<u16>, Decom
                     return Err(DecompressionError::InvalidLength(data.len()));
                 }
 
-                let repeat_start = 2 * LittleEndian::read_u16(&data[i..(i + 2)]) as usize;
-                let mut words = vec![0; current as usize];
-                LittleEndian::read_u16_into(
-                    &data[repeat_start..repeat_start + (2 * current) as usize],
-                    &mut words
-                );
+                let repeat_start = LittleEndian::read_u16(&data[i..(i + 2)]) as usize;
+                let mut words = decompressed[repeat_start..repeat_start + (current as usize)].to_vec();
                 decompressed.append(&mut words);
                 i += 2;
             },

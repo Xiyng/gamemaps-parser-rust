@@ -24,7 +24,7 @@ fn does_not_modify_uncompressed_data() {
 #[test]
 fn decompresses_with_one_near_pointer() {
     assert_success(SuccessTestData {
-        compressed: vec![0x02, 0x00, 0xcd, 0x00, 0x01, 0xa7, 0x02],
+        compressed: vec![0x02, 0x00, 0xcd, 0x00, 0x01, 0xa7, 0x01],
         decompressed: vec![0x00cd, 0x00cd]
     }, 0)
 }
@@ -32,7 +32,7 @@ fn decompresses_with_one_near_pointer() {
 #[test]
 fn decompresses_with_one_far_pointer() {
     assert_success(SuccessTestData {
-        compressed: vec![0x04, 0x00, 0xcd, 0x00, 0x01, 0xa8, 0x01, 0x00],
+        compressed: vec![0x04, 0x00, 0xcd, 0x00, 0x01, 0xa8, 0x00, 0x00],
         decompressed: vec![0x00cd, 0x00cd]
     }, 0)
 }
