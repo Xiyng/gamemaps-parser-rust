@@ -17,7 +17,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     let mut planes = Vec::with_capacity(planes_num);
     for i in 0..planes_num {
         let plane_header = read_plane_header(data, offset_usize, planes_num, i);
-        let carmack_decompressed_data = carmack::decompress(&data, plane_header.offset).map_err(|e|
+        let carmack_decompressed_data = carmack::decompress(&data, plane_header.offset as usize).map_err(|e|
             LevelParseError::CarmackDecompressionError {
                 plane: i,
                 error: e

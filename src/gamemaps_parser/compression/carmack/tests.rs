@@ -7,7 +7,7 @@ struct SuccessTestData {
     decompressed: Vec<u16>
 }
 
-fn assert_success(test_data: SuccessTestData, offset: u32) {
+fn assert_success(test_data: SuccessTestData, offset: usize) {
     let actual = decompress(&test_data.compressed, offset);
     let expected = Ok(test_data.decompressed);
     assert_eq!(actual, expected)
