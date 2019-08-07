@@ -82,15 +82,6 @@ fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
     Ok(())
 }
 
-fn read_plane_headers(data: &Vec<u8>, offset: usize, planes_num: usize) -> Vec<PlaneHeader> {
-    let mut plane_headers = vec![];
-    for plane_num in 0..planes_num {
-        let plane_header = read_plane_header(&data, offset, planes_num, plane_num);
-        plane_headers.push(plane_header);
-    }
-    plane_headers
-}
-
 fn read_plane_header(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> PlaneHeader {
     let plane_offset_offset = offset + plane_num * 4;
     let plane_length_offset = offset + planes_num * 4 + plane_num * 2;
