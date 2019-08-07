@@ -95,10 +95,10 @@ fn read_plane_header(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num
     let plane_offset_offset = offset + plane_num * 4;
     let plane_length_offset = offset + planes_num * 4 + plane_num * 2;
     let plane_offset = LittleEndian::read_u32(&data[plane_offset_offset..(plane_offset_offset + 4)]);
-    let plane_uncompressed_length = LittleEndian::read_u16(&data[plane_length_offset..(plane_length_offset + 2)]);
+    let plane_compressed_length = LittleEndian::read_u16(&data[plane_length_offset..(plane_length_offset + 2)]);
     PlaneHeader {
         offset: plane_offset,
-        compressed_length: plane_uncompressed_length
+        compressed_length: plane_compressed_length
     }
 }
 
