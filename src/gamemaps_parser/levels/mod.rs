@@ -28,7 +28,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             &carmack_decompressed_data,
             &mut carmack_decompressed_data_u8
         );
-        let rlew_decoded_data = rlew::decode(&carmack_decompressed_data_u8, 0xabcd).map_err(|e|
+        let rlew_decoded_data = rlew::decode(&carmack_decompressed_data_u8, 0xabcd, None).map_err(|e|
             LevelParseError::RlewDecodeError {
                 plane: i,
                 error: e

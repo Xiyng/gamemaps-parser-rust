@@ -20,7 +20,7 @@ fn assert_success(test_data: SuccessTestData) {
             _ => {}
         }
     }
-    let actual = decode(&compressed_u8, RLEW_TAG);
+    let actual = decode(&compressed_u8, RLEW_TAG, None);
     let expected = Ok(test_data.decompressed);
     assert_eq!(actual, expected)
 }
@@ -44,7 +44,7 @@ fn decodes_two_repeated_values() {
 #[test]
 fn decodes_wolf1_map1_plane2() {
     let compressed_data = vec![0x00, 0x20, 0xcd, 0xab, 0x00, 0x10, 0x00, 0x00];
-    let decompressed_data = decode(&compressed_data, WOLF3D_RLEW_TAG).unwrap();
+    let decompressed_data = decode(&compressed_data, WOLF3D_RLEW_TAG, None).unwrap();
     assert_ne!(decompressed_data.len(), 0); // This is not really needed but it can clean up the failure message.
     assert_eq!(decompressed_data, vec![0x0000; 0x1000])
 }

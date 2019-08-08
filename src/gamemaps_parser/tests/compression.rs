@@ -16,6 +16,6 @@ fn decompresses_wolf1_map1_plane2() {
             &rlew_compressed_words,
             &mut rlew_compressed_bytes
         );
-    let decompressed_words = rlew::decode(&rlew_compressed_bytes, 0xabcd).expect("RLEW decoding failed.");
+    let decompressed_words = rlew::decode(&rlew_compressed_bytes, 0xabcd, None).expect("RLEW decoding failed.");
     assert_eq!(decompressed_words.len(), 4096)
 }
