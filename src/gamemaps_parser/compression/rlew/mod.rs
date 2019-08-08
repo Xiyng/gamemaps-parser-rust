@@ -19,7 +19,7 @@ pub fn decode(data: &Vec<u8>, tag: u16, decoded_length: Option<usize>) -> Result
         LittleEndian::read_u16(&data[0..2]) as usize
     });
 
-    while decoded.len() < 2 * decoded_length_bytes && words_read < data.len() / 2 {
+    while 2 * decoded.len() < decoded_length_bytes && words_read < data.len() / 2 {
         let offset = 2 * words_read;
         let x = LittleEndian::read_u16(&data[offset..(offset + 2)]);
         let copy_wanted = x == tag;

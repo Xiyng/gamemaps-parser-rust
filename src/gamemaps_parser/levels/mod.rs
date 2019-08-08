@@ -67,15 +67,20 @@ fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
     Ok(())
 }
 
-fn parse_level_header(data: &Vec<u8>, offset: usize, decompressed_byte_count: usize) -> Result<LevelHeader, LevelParseError> {
+fn parse_level_header(compressed_data: &Vec<u8>, offset: usize, decompressed_byte_count: usize) -> Result<LevelHeader, LevelParseError> {
+    let compressed_data_without_offset = compressed_data[offset..compressed_data.len()].to_vec();
+    let data_u16 = rlew::decode(&compressed_data_without_offset, 0xabcd, Some(decompressed_byte_count)).unwrap(); // TODO: Add error handling.
+    let mut data = vec![0; 2 * data_u16.len()];
+    LittleEndian::write_u16_into(&data_u16, &mut data);
+
     let planes_num = 3;
     let mut plane_headers = Vec::with_capacity(planes_num);
     for i in 0..planes_num {
-        let plane_header = read_plane_header(data, offset, planes_num, i);
+        let plane_header = read_plane_header(&data, planes_num, i);
         plane_headers.push(plane_header);
     }
 
-    let width_offset = offset + planes_num * 6;
+    let width_offset = planes_num * 6;
     if width_offset >= data.len() {
         return Err(LevelParseError::UnexpectedEndOfData);
     }
@@ -108,9 +113,9 @@ struct LevelHeader {
     height: u16
 }
 
-fn read_plane_header(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> PlaneHeader {
-    let plane_offset_offset = offset + plane_num * 4;
-    let plane_length_offset = offset + planes_num * 4 + plane_num * 2;
+fn read_plane_header(data: &Vec<u8>, planes_num: usize, plane_num: usize) -> PlaneHeader {
+    let plane_offset_offset = plane_num * 4;
+    let plane_length_offset = planes_num * 4 + plane_num * 2;
     let plane_offset = LittleEndian::read_u32(&data[plane_offset_offset..(plane_offset_offset + 4)]);
     let plane_compressed_length = LittleEndian::read_u16(&data[plane_length_offset..(plane_length_offset + 2)]);
     PlaneHeader {
