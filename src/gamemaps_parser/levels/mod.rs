@@ -13,10 +13,11 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
 
     let offset_usize = offset as usize;
 
-    let planes_num = 3;
-    let mut planes = Vec::with_capacity(planes_num);
-    for i in 0..planes_num {
-        let plane_header = read_plane_header(data, offset_usize, planes_num, i);
+    let level_header = parse_level_header(&data, offset as usize, 42).unwrap(); // TODO: Add error handling.
+    let plane_count = level_header.plane_headers.len();
+    let mut planes = Vec::with_capacity(plane_count);
+    let mut i = 0;
+    for plane_header in level_header.plane_headers.iter() {
         let carmack_decompressed_data = carmack::decompress(&data, plane_header.offset as usize).map_err(|e|
             LevelParseError::CarmackDecompressionError {
                 plane: i,
@@ -37,30 +38,14 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
 
         // TODO: Do Carmack decompression only when it's needed.
         planes.push(Plane { data: rlew_decoded_data });
-    }
 
-    let width_offset = offset_usize + planes_num * 6;
-    if width_offset >= data.len() {
-        return Err(LevelParseError::UnexpectedEndOfData);
+        i += 1;
     }
-    let width = LittleEndian::read_u16(
-        &data[width_offset..(width_offset + 2)]
-    );
-
-    let height_offset = width_offset + 2;
-    if height_offset >= data.len() {
-        return Err(LevelParseError::UnexpectedEndOfData);
-    }
-    let height = LittleEndian::read_u16(
-        &data[height_offset..(height_offset + 2)]
-    );
-
-    let name = parse_name(&data, height_offset + 2)?;
 
     Ok(Level {
-        name: name,
-        width: width,
-        height: height,
+        name: level_header.name,
+        width: level_header.width,
+        height: level_header.height,
         planes: planes
     })
 }
@@ -80,6 +65,47 @@ fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
     }
 
     Ok(())
+}
+
+fn parse_level_header(data: &Vec<u8>, offset: usize, decompressed_byte_count: usize) -> Result<LevelHeader, LevelParseError> {
+    let planes_num = 3;
+    let mut plane_headers = Vec::with_capacity(planes_num);
+    for i in 0..planes_num {
+        let plane_header = read_plane_header(data, offset, planes_num, i);
+        plane_headers.push(plane_header);
+    }
+
+    let width_offset = offset + planes_num * 6;
+    if width_offset >= data.len() {
+        return Err(LevelParseError::UnexpectedEndOfData);
+    }
+    let width = LittleEndian::read_u16(
+        &data[width_offset..(width_offset + 2)]
+    );
+
+    let height_offset = width_offset + 2;
+    if height_offset >= data.len() {
+        return Err(LevelParseError::UnexpectedEndOfData);
+    }
+    let height = LittleEndian::read_u16(
+        &data[height_offset..(height_offset + 2)]
+    );
+
+    let name = parse_name(&data, height_offset + 2)?;
+
+    Ok(LevelHeader {
+        plane_headers: plane_headers,
+        name: name,
+        width: width,
+        height: height
+    })
+}
+
+struct LevelHeader {
+    plane_headers: Vec<PlaneHeader>,
+    name: String,
+    width: u16,
+    height: u16
 }
 
 fn read_plane_header(data: &Vec<u8>, offset: usize, planes_num: usize, plane_num: usize) -> PlaneHeader {
