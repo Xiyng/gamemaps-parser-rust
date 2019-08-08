@@ -1,7 +1,5 @@
 extern crate byteorder;
 
-use std::io::Cursor;
-
 use self::byteorder::*;
 
 use gamemaps_parser::compression::{carmack, rlew};
