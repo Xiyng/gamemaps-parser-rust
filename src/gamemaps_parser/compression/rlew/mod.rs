@@ -12,8 +12,8 @@ pub fn decode(data: &Vec<u8>, tag: u16) -> Result<Vec<u16>, RlewDecodeError> {
     }
 
     let mut decoded = Vec::new();
-    let decoded_length_bytes = LittleEndian::read_u32(&data[0..4]) as usize;
-    let mut i = 4;
+    let decoded_length_bytes = LittleEndian::read_u16(&data[0..2]) as usize;
+    let mut i = 1;
     while decoded.len() < 2 * decoded_length_bytes && i < data.len() / 2 {
         let offset = 2 * i;
         let x = LittleEndian::read_u16(&data[offset..(offset + 2)]);
