@@ -64,6 +64,7 @@ fn main() {
                 return;
             }
         }
+        break; // TODO: We'll do just one level until we get it right.
     }
     println!(
         "Parsed level data successfully for {} levels.",
