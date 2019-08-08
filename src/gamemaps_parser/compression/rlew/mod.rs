@@ -13,23 +13,23 @@ pub fn decode(data: &Vec<u8>, tag: u16) -> Result<Vec<u16>, RlewDecodeError> {
 
     let mut decoded = Vec::new();
     let decoded_length_bytes = LittleEndian::read_u16(&data[0..2]) as usize;
-    let mut i = 1;
-    while decoded.len() < 2 * decoded_length_bytes && i < data.len() / 2 {
-        let offset = 2 * i;
+    let mut words_read = 1;
+    while decoded.len() < 2 * decoded_length_bytes && words_read < data.len() / 2 {
+        let offset = 2 * words_read;
         let x = LittleEndian::read_u16(&data[offset..(offset + 2)]);
         let copy_wanted = x == tag;
         if !copy_wanted {
             decoded.push(x);
-            i += 1;
+            words_read += 1;
             continue;
         }
-        if i + 2 >= data.len() / 2 {
+        if words_read + 2 >= data.len() / 2 {
             return Err(RlewDecodeError::UnexpectedEndOfData);
         }
         let count = LittleEndian::read_u16(&data[(offset + 2)..(offset + 4)]);
         let value_to_copy = LittleEndian::read_u16(&data[(offset + 4)..(offset + 6)]);
         decoded.append(&mut vec![value_to_copy; count as usize]);
-        i += 3;
+        words_read += 3;
     }
 
     Ok(decoded)
