@@ -52,3 +52,11 @@ fn decompresses_data_with_high_byte_0xa7() {
         decompressed: vec![0xcda7]
     }, 0)
 }
+
+#[test]
+fn decompresses_data_with_high_byte_0xa8() {
+    assert_success(SuccessTestData {
+        compressed: vec![0x02, 0x00, 0x00, 0xa8, 0xcd],
+        decompressed: vec![0xcda8]
+    }, 0)
+}
