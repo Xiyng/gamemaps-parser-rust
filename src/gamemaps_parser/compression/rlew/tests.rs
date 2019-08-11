@@ -26,6 +26,14 @@ fn assert_success(test_data: SuccessTestData) {
 }
 
 #[test]
+fn does_not_modify_uncompressed_data() {
+    assert_success(SuccessTestData {
+        compressed: vec![0x04, 0x01, 0x02, 0x03, 0x04],
+        decompressed: vec![0x01, 0x02, 0x03, 0x04]
+    })
+}
+
+#[test]
 fn decodes_a_single_repeated_value() {
     assert_success(SuccessTestData {
         compressed: vec![0x04, RLEW_TAG, 2, 0xabcd],
