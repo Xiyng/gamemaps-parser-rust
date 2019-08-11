@@ -6,7 +6,7 @@ extern crate byteorder;
 use std::fmt;
 use self::byteorder::*;
 
-pub fn decode(data: &Vec<u8>, tag: u16, decoded_length: Option<usize>) -> Result<Vec<u16>, RlewDecodeError> {
+pub fn decode(data: &Vec<u8>, tag: u16, decoded_length_words: Option<usize>) -> Result<Vec<u16>, RlewDecodeError> {
     if data.len() % 2 != 0 {
         return Err(RlewDecodeError::InvalidLength(data.len()));
     }
@@ -14,12 +14,12 @@ pub fn decode(data: &Vec<u8>, tag: u16, decoded_length: Option<usize>) -> Result
     let mut decoded = Vec::new();
 
     let mut words_read = 0;
-    let decoded_length_bytes = decoded_length.unwrap_or_else(|| {
+    let actual_decoded_length_words = decoded_length_words.unwrap_or_else(|| {
         words_read = 1;
         LittleEndian::read_u16(&data[0..2]) as usize
     });
 
-    while 2 * decoded.len() < decoded_length_bytes && words_read < data.len() / 2 {
+    while decoded.len() < actual_decoded_length_words && words_read < data.len() / 2 {
         let offset = 2 * words_read;
         let x = LittleEndian::read_u16(&data[offset..(offset + 2)]);
         let copy_wanted = x == tag;
