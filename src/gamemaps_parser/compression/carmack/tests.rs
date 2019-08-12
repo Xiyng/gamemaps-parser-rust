@@ -22,10 +22,26 @@ fn does_not_modify_uncompressed_data() {
 }
 
 #[test]
-fn decompresses_with_one_near_pointer() {
+fn decompresses_one_word_once_with_one_near_pointer() {
     assert_success(SuccessTestData {
         compressed: vec![0x00, 0x02, 0xcd, 0x00, 0x01, 0xa7, 0x01],
         decompressed: vec![0x00cd, 0x00cd]
+    }, 0)
+}
+
+#[test]
+fn decompresses_two_words_with_one_near_pointer() {
+    assert_success(SuccessTestData {
+        compressed: vec![0x05, 0x02, 0xcd, 0x00, 0xab, 0x00, 0x12, 0x34, 0x02, 0xa7, 0x03],
+        decompressed: vec![0x00cd, 0x00ab, 0x3412, 0x00cd, 0x00ab]
+    }, 0)
+}
+
+#[test]
+fn decompresses_three_words_with_one_near_pointer() {
+    assert_success(SuccessTestData {
+        compressed: vec![0x06, 0x02, 0xcd, 0x00, 0xab, 0x00, 0x12, 0x34, 0x03, 0xa7, 0x03],
+        decompressed: vec![0x00cd, 0x00ab, 0x3412, 0x00cd, 0x00ab, 0x3412]
     }, 0)
 }
 
