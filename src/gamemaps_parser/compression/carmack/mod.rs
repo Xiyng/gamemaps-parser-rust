@@ -11,10 +11,11 @@ const FAR_SIGNAL: u8 = 0xa8;
 
 pub fn decompress(data: &Vec<u8>, start_offset: usize) -> Result<Vec<u16>, DecompressionError> {
     let decompressed_length_bytes = LittleEndian::read_u16(&data[start_offset..(start_offset + 2)]) as usize;
+    let decompressed_length_words = decompressed_length_bytes / 2;
     let mut decompressed = Vec::new();
 
     let mut i  = start_offset + 2;
-    while decompressed.len() < 2 * decompressed_length_bytes && i < data.len() {
+    while decompressed.len() < decompressed_length_words && i < data.len() {
         if i + 1 >= data.len() {
             return Err(DecompressionError::InvalidLength(data.len()));
         }
