@@ -13,7 +13,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
 
     let offset_usize = offset as usize;
 
-    let level_header = parse_level_header(&data, offset as usize, 42 / 2).unwrap(); // TODO: Add error handling.
+    let level_header = parse_level_header(&data, offset as usize, 42 / 2)?; // TODO: Add error handling.
     let plane_count = level_header.plane_headers.len();
     let mut planes = Vec::with_capacity(plane_count);
     let mut i = 0;
