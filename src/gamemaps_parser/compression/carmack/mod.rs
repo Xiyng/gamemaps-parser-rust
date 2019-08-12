@@ -41,7 +41,7 @@ pub fn decompress(data: &Vec<u8>, start_offset: usize) -> Result<Vec<u16>, Decom
                 }
 
                 let offset = data[i] as usize;
-                let repeat_start = decompressed.len() - 1 - offset;
+                let repeat_start = decompressed.len() - offset;
                 let repeat_end = repeat_start + (current as usize);
                 if repeat_end > decompressed.len() {
                     return Err(DecompressionError::NearPointerOffsetOutOfBounds {
