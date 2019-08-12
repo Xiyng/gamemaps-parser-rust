@@ -52,9 +52,13 @@ fn main() {
     };
 
     let mut levels_parsed_successfully = 0;
+    let total_level_count = header_data.level_offsets.len();
     for level_offset in header_data.level_offsets.iter() {
         match levels::parse(&level_data, *level_offset) {
-            Ok(_) => levels_parsed_successfully += 1,
+            Ok(_) => {
+                levels_parsed_successfully += 1;
+                println!("Successfully parsed level {}/{}.", levels_parsed_successfully, total_level_count);
+            },
             Err(e) => {
                 println!(
                     "Parsing level data failed for level {}. Reason: {}.",
