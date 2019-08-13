@@ -8,7 +8,9 @@ use self::byteorder::*;
 
 pub fn decode(data: &Vec<u8>, tag: u16, decoded_length_words: Option<usize>) -> Result<Vec<u16>, RlewDecodeError> {
     if data.len() % 2 != 0 {
-        return Err(RlewDecodeError::InvalidLength(data.len()));
+        // TODO: Things seem to be working out very well even without this, so
+        // it should be figured out whether this can be removed altogether.
+        // return Err(RlewDecodeError::InvalidLength(data.len()));
     }
 
     let mut decoded = Vec::new();
