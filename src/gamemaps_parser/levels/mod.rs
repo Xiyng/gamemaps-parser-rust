@@ -5,6 +5,7 @@ extern crate byteorder;
 
 use std::ffi::CStr;
 use std::fmt;
+use std::ops::Index;
 use gamemaps_parser::compression::{carmack, rlew};
 use self::byteorder::*;
 
@@ -15,6 +16,8 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     validate_magic_str(&data)?;
 
     let level_header = parse_level_header(&data, offset as usize, HEADER_LENGTH_U8 / 2)?;
+    let width = level_header.width as usize;
+    let height = level_header.height as usize;
     let plane_count = level_header.plane_headers.len();
     let mut planes = Vec::with_capacity(plane_count);
     let mut i = 0;
@@ -37,17 +40,21 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             }
         )?;
 
-        if rlew_decoded_data.len() != level_header.width as usize * level_header.height as usize {
+        if rlew_decoded_data.len() != width * height {
             return Err(LevelParseError::InvalidPlaneLength {
                 plane: i,
                 actual_length: rlew_decoded_data.len(),
-                expected_width: level_header.width as usize,
-                expected_height: level_header.height as usize
+                expected_width: width,
+                expected_height: height
             });
         }
 
         // TODO: Do Carmack decompression only when it's needed.
-        planes.push(Plane { data: rlew_decoded_data });
+        planes.push(Plane {
+            data: rlew_decoded_data,
+            width: width,
+            height: height
+        });
 
         i += 1;
     }
@@ -162,7 +169,17 @@ pub struct Level {
 
 #[derive(Debug, PartialEq)]
 pub struct Plane {
-    pub data: Vec<u16>
+    pub data: Vec<u16>,
+    width: usize,
+    height: usize
+}
+
+impl Index<(usize, usize)> for Plane {
+    type Output = u16;
+
+    fn index(&self, (column, row): (usize, usize)) -> &Self::Output {
+        &self.data[column + row * self.width]
+    }
 }
 
 #[derive(Debug, PartialEq)]
