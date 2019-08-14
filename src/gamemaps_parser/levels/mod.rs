@@ -9,11 +9,12 @@ use gamemaps_parser::compression::{carmack, rlew};
 use self::byteorder::*;
 
 const RLEW_TAG: u16 = 0xabcd;
+const HEADER_LENGTH_U8: usize = 42;
 
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     validate_magic_str(&data)?;
 
-    let level_header = parse_level_header(&data, offset as usize, 42 / 2)?;
+    let level_header = parse_level_header(&data, offset as usize, HEADER_LENGTH_U8 / 2)?;
     let plane_count = level_header.plane_headers.len();
     let mut planes = Vec::with_capacity(plane_count);
     let mut i = 0;
