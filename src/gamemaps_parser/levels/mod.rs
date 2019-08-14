@@ -37,6 +37,15 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             }
         )?;
 
+        if rlew_decoded_data.len() != level_header.width as usize * level_header.height as usize {
+            return Err(LevelParseError::InvalidPlaneLength {
+                plane: i,
+                actual_length: rlew_decoded_data.len(),
+                expected_width: level_header.width as usize,
+                expected_height: level_header.height as usize
+            });
+        }
+
         // TODO: Do Carmack decompression only when it's needed.
         planes.push(Plane { data: rlew_decoded_data });
 
@@ -160,7 +169,12 @@ pub struct Plane {
 pub enum LevelParseError {
     UnexpectedEndOfData,
     InvalidMagicString(String),
-    InvalidPlaneLength { plane: usize, length: usize },
+    InvalidPlaneLength {
+        plane: usize,
+        actual_length: usize,
+        expected_width: usize,
+        expected_height: usize
+    },
     CarmackDecompressionError { plane: usize, error: carmack::DecompressionError },
     LevelHeaderRlewDecodeError { error: rlew::RlewDecodeError },
     PlaneRlewDecodeError { plane: usize, error: rlew::RlewDecodeError },
@@ -174,8 +188,11 @@ impl fmt::Display for LevelParseError {
                 write!(f, "Unexpected end of data"),
             LevelParseError::InvalidMagicString(ref s) =>
                 write!(f, "Invalid magic string: {}", s),
-            LevelParseError::InvalidPlaneLength { plane, length } =>
-                write!(f, "Invalid plane length for plane {}: {}", plane, length),
+            LevelParseError::InvalidPlaneLength { plane, actual_length, expected_width, expected_height } =>
+                write!(
+                    f, "Invalid plane length for plane {}: Got {} but expected width to be {} and height to be {}",
+                    plane, actual_length, expected_width, expected_height
+                ),
             LevelParseError::CarmackDecompressionError { plane, ref error } =>
                 write!(f, "Carmack decompression error for plane {}: {}", plane, error),
             LevelParseError::LevelHeaderRlewDecodeError { ref error } =>
