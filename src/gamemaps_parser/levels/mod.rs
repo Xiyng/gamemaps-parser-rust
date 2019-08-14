@@ -11,8 +11,6 @@ use self::byteorder::*;
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     validate_magic_str(&data)?;
 
-    let offset_usize = offset as usize;
-
     let level_header = parse_level_header(&data, offset as usize, 42 / 2)?;
     let plane_count = level_header.plane_headers.len();
     let mut planes = Vec::with_capacity(plane_count);
