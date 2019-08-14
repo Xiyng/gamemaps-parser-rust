@@ -169,9 +169,9 @@ pub struct Level {
 
 #[derive(Debug, PartialEq)]
 pub struct Plane {
-    pub data: Vec<u16>,
     pub width: usize,
-    pub height: usize
+    pub height: usize,
+    data: Vec<u16>
 }
 
 impl Plane {
