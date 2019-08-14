@@ -8,6 +8,8 @@ use std::fmt;
 use gamemaps_parser::compression::{carmack, rlew};
 use self::byteorder::*;
 
+const RLEW_TAG: u16 = 0xabcd;
+
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     validate_magic_str(&data)?;
 
@@ -27,7 +29,7 @@ pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
             &carmack_decompressed_data,
             &mut carmack_decompressed_data_u8
         );
-        let rlew_decoded_data = rlew::decode(&carmack_decompressed_data_u8, 0xabcd, None).map_err(|e|
+        let rlew_decoded_data = rlew::decode(&carmack_decompressed_data_u8, RLEW_TAG, None).map_err(|e|
             LevelParseError::PlaneRlewDecodeError {
                 plane: i,
                 error: e
@@ -67,7 +69,7 @@ fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
 
 fn parse_level_header(compressed_data: &Vec<u8>, offset: usize, decompressed_byte_count: usize) -> Result<LevelHeader, LevelParseError> {
     let compressed_data_without_offset = compressed_data[offset..compressed_data.len()].to_vec();
-    let data_u16 = rlew::decode(&compressed_data_without_offset, 0xabcd, Some(decompressed_byte_count)).map_err(|e| {
+    let data_u16 = rlew::decode(&compressed_data_without_offset, RLEW_TAG, Some(decompressed_byte_count)).map_err(|e| {
         LevelParseError::LevelHeaderRlewDecodeError { error: e }
     })?;
     let mut data = vec![0; 2 * data_u16.len()];
