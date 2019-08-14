@@ -175,7 +175,7 @@ pub struct Plane {
 }
 
 impl Plane {
-    fn row(&self, row_number: usize) -> &[u16] {
+    pub fn row(&self, row_number: usize) -> &[u16] {
         let start_index = row_number * self.width;
         let end_index = start_index + self.width;
         &self.data[start_index..end_index]
