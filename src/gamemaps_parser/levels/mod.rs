@@ -156,7 +156,7 @@ fn parse_name(data: &Vec<u8>, offset: usize) -> Result<String, LevelParseError> 
 
 struct PlaneHeader {
     offset: u32,
-    compressed_length: u16
+    compressed_length: u16 // It's there but it's not really needed.
 }
 
 #[derive(Debug, PartialEq)]
