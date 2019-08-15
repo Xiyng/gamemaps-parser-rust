@@ -8,6 +8,9 @@ use super::*;
 // we need to either fix or ignore this test. We'll ignore it for now.
 #[ignore]
 fn parses_valid_data() {
+    let width = 64;
+    let height = 64;
+
     let test_data_offset = 10;
     let test_data = create_empty_test_data(test_data_offset);
     
@@ -15,12 +18,12 @@ fn parses_valid_data() {
         parse(&test_data, test_data_offset),
         Ok(Level {
             name: "test".to_string(),
-            width: 64,
-            height: 64,
+            width: width,
+            height: height,
             planes: vec![
-                Plane { data: Vec::new() },
-                Plane { data: Vec::new() },
-                Plane { data: Vec::new() }
+                Plane { data: Vec::new(), width: width as usize, height: height as usize },
+                Plane { data: Vec::new(), width: width as usize, height: height as usize },
+                Plane { data: Vec::new(), width: width as usize, height: height as usize }
             ]
         })
     );
