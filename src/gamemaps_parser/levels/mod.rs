@@ -15,7 +15,7 @@ const HEADER_LENGTH_U8: usize = 42;
 pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
     validate_magic_str(&data)?;
 
-    let level_header = parse_level_header(&data, offset as usize, HEADER_LENGTH_U8 / 2)?;
+    let level_header = parse_level_header(&data, offset, HEADER_LENGTH_U8 / 2)?;
     let width = level_header.width as usize;
     let height = level_header.height as usize;
     let plane_count = level_header.plane_headers.len();
@@ -84,8 +84,8 @@ fn validate_magic_str(data: &Vec<u8>) -> Result<(), LevelParseError> {
     Ok(())
 }
 
-fn parse_level_header(compressed_data: &Vec<u8>, offset: usize, decompressed_byte_count: usize) -> Result<LevelHeader, LevelParseError> {
-    let compressed_data_without_offset = compressed_data[offset..compressed_data.len()].to_vec();
+fn parse_level_header(compressed_data: &Vec<u8>, offset: u32, decompressed_byte_count: usize) -> Result<LevelHeader, LevelParseError> {
+    let compressed_data_without_offset = compressed_data[offset as usize..compressed_data.len()].to_vec();
     let data_u16 = rlew::decode(&compressed_data_without_offset, RLEW_TAG, Some(decompressed_byte_count)).map_err(|e| {
         LevelParseError::LevelHeaderRlewDecodeError { error: e }
     })?;
