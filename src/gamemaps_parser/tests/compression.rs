@@ -10,10 +10,7 @@ fn decompresses_wolf1_map1_plane2() {
     let rlew_compressed_words = carmack::decompress(&carmack_compressed_data, 0).expect("Carmack decompression failed.");
     assert_eq!(4, rlew_compressed_words.len());
     let mut rlew_compressed_bytes = vec![0; 2 * rlew_compressed_words.len()];
-        LittleEndian::write_u16_into(
-            &rlew_compressed_words,
-            &mut rlew_compressed_bytes
-        );
+    LittleEndian::write_u16_into(&rlew_compressed_words, &mut rlew_compressed_bytes);
     let decompressed_words = rlew::decode(&rlew_compressed_bytes, 0xabcd, None).expect("RLEW decoding failed.");
     assert_eq!(decompressed_words.len(), 4096)
 }
