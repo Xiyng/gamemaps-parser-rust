@@ -2,59 +2,28 @@ extern crate gamemaps_parser;
 
 use std::env::args;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::BufReader;
 use gamemaps_parser::header;
 use gamemaps_parser::levels;
 
 fn main() {
     let mut args = args();
     args.next(); // The executable is the first argument.
+    let header_file_path = args.next().expect(&format!("No header file path specified."));
+    let level_file_path = args.next().expect(&format!("No level data file path specified."));
 
-    let header_file_path = match args.next() {
-        Some(path) => path,
-        None       => return println!("No header file path specified.")
-    };
+    let header_file = File::open(&header_file_path).expect(&format!("Header file not found: {}", header_file_path));
+    let level_file = File::open(&level_file_path).expect(&format!("Level file not found: {}", level_file_path));
 
-    let level_file_path = match args.next() {
-        Some(path) => path,
-        None       => return println!("No level data file path specified.")
-    };
+    let mut header_reader = BufReader::new(&header_file);
+    let header_data = header::parse(&mut header_reader).expect(&format!("Error while parsing the header file."));
+    println!("Header file parsed successfully.");
 
-    let mut header_file = match File::open(&header_file_path) {
-        Ok(file) => file,
-        _        => return println!("Header file not found: {}", header_file_path)
-    };
-    let mut header_data = Vec::new();
-    if header_file.read_to_end(&mut header_data).is_err() {
-        return println!("Error reading header file: {}", header_file_path)
-    }
-
-    let mut level_file = match File::open(&level_file_path) {
-        Ok(file) => file,
-        _        => return println!("Level file not found: {}", level_file_path)
-    };
-    let mut level_data = Vec::new();
-    if level_file.read_to_end(&mut level_data).is_err() {
-        return println!("Error reading level file: {}", level_file_path)
-    }
-
-    println!("Header and level file read succesfully.");
-
-    let header_data = match header::parse(&header_data) { // to see whether it runs without errors
-        Ok(header_data)  => {
-            println!("Header file parsed successfully.");
-            header_data
-        },
-        Err(_) => {
-            println!("Error while parsing the header file.");
-            return;
-        }
-    };
-
+    let mut level_reader = BufReader::new(&level_file);
     let mut levels_parsed_successfully = 0;
     let total_level_count = header_data.level_offsets.len();
     for level_offset in header_data.level_offsets.iter() {
-        match levels::parse(&level_data, *level_offset) {
+        match levels::parse(&mut level_reader, *level_offset) {
             Ok(_) => {
                 levels_parsed_successfully += 1;
                 println!("Successfully parsed level {}/{}.", levels_parsed_successfully, total_level_count);

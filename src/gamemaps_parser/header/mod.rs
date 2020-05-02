@@ -3,14 +3,18 @@ mod tests;
 
 extern crate byteorder;
 
+use std::io::BufRead;
 use std::panic;
 use self::byteorder::*;
 
-pub fn parse(data: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
+pub fn parse(data_reader: &mut dyn BufRead) -> Result<HeaderData, HeaderParseError> {
     let mut header = HeaderData {
         level_offsets: Vec::new(),
         tile_info: Vec::new()
     };
+
+    let mut data = Vec::new();
+    data_reader.read_to_end(&mut data).map_err(|_| HeaderParseError::UnableToReadBuffer)?;
 
     let rlew_tag_start = 0;
     let rlew_tag_end = 2;
@@ -58,6 +62,7 @@ pub struct HeaderData {
 
 #[derive(Debug, PartialEq)]
 pub enum HeaderParseError {
+    UnableToReadBuffer,
     UnexpectedEndOfFile,
     InvalidRlewTag(u16)
 }

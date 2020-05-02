@@ -1,9 +1,11 @@
+use std::io::BufReader;
+
 use super::*;
 
 #[test]
 fn does_not_parse_empty_data() {
     assert_eq!(
-        parse(&Vec::new()),
+        parse_vec(&Vec::new()),
         Err(HeaderParseError::UnexpectedEndOfFile)
     );
 }
@@ -11,7 +13,7 @@ fn does_not_parse_empty_data() {
 #[test]
 fn does_not_parse_invalid_rlew_tag() {
     assert_eq!(
-        parse(&vec![0xfe, 0xef]),
+        parse_vec(&vec![0xfe, 0xef]),
         Err(HeaderParseError::InvalidRlewTag(0xeffe))
     );
 }
@@ -19,7 +21,7 @@ fn does_not_parse_invalid_rlew_tag() {
 #[test]
 fn does_not_parse_valid_rlew_tag_and_missing_level_offsets() {
     assert_eq!(
-        parse(&vec![0xcd, 0xab]),
+        parse_vec(&vec![0xcd, 0xab]),
         Err(HeaderParseError::UnexpectedEndOfFile)
     );
 }
@@ -27,7 +29,7 @@ fn does_not_parse_valid_rlew_tag_and_missing_level_offsets() {
 #[test]
 fn does_not_parse_valid_rlew_tag_and_too_short_level_offsets() {
     assert_eq!(
-        parse(&vec![0xcd, 0xab, 0x00]),
+        parse_vec(&vec![0xcd, 0xab, 0x00]),
         Err(HeaderParseError::UnexpectedEndOfFile)
     );
 }
@@ -41,7 +43,7 @@ fn parses_valid_file_with_zero_offsets() {
     test_data.append(&mut rlew_tag);
     test_data.append(&mut level_offsets);
 
-    assert_eq!(parse(&test_data), Ok(HeaderData {
+    assert_eq!(parse_vec(&test_data), Ok(HeaderData {
         level_offsets: Vec::new(),
         tile_info: Vec::new()
     }));
@@ -63,8 +65,13 @@ fn parses_valid_file_with_non_zero_offsets() {
     test_data.append(&mut rlew_tag);
     test_data.append(&mut level_offsets);
 
-    assert_eq!(parse(&test_data), Ok(HeaderData {
+    assert_eq!(parse_vec(&test_data), Ok(HeaderData {
         level_offsets: level_offsets_u32,
         tile_info: Vec::new()
     }));
+}
+
+fn parse_vec(vec: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
+    let mut reader = BufReader::new(&vec[..]);
+    parse(&mut reader)
 }

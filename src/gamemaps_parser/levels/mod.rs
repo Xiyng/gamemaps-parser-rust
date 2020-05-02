@@ -5,6 +5,7 @@ extern crate byteorder;
 
 use std::ffi::CStr;
 use std::fmt;
+use std::io::BufRead;
 use std::ops::Index;
 use gamemaps_parser::compression::{carmack, rlew};
 use self::byteorder::*;
@@ -12,7 +13,10 @@ use self::byteorder::*;
 const RLEW_TAG: u16 = 0xabcd;
 const HEADER_LENGTH_U8: usize = 42;
 
-pub fn parse(data: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
+pub fn parse(data_reader: &mut dyn BufRead, offset: u32) -> Result<Level, LevelParseError> {
+    let mut data = Vec::new();
+    data_reader.read_to_end(&mut data).map_err(|_| LevelParseError::UnableToReadBuffer)?;
+
     validate_magic_str(&data)?;
 
     let level_header = parse_level_header(&data, offset, HEADER_LENGTH_U8 / 2)?;
@@ -192,6 +196,7 @@ impl Index<(usize, usize)> for Plane {
 
 #[derive(Debug, PartialEq)]
 pub enum LevelParseError {
+    UnableToReadBuffer,
     UnexpectedEndOfData,
     InvalidMagicString(String),
     InvalidPlaneLength {
@@ -209,6 +214,8 @@ pub enum LevelParseError {
 impl fmt::Display for LevelParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            LevelParseError::UnableToReadBuffer =>
+                write!(f, "Unable to read buffer"),
             LevelParseError::UnexpectedEndOfData =>
                 write!(f, "Unexpected end of data"),
             LevelParseError::InvalidMagicString(ref s) =>

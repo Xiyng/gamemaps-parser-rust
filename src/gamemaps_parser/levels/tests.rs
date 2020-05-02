@@ -1,5 +1,7 @@
 extern crate byteorder;
 
+use std::io::BufReader;
+
 use self::byteorder::*;
 use super::*;
 
@@ -15,7 +17,7 @@ fn parses_valid_data() {
     let test_data = create_empty_test_data(test_data_offset);
     
     assert_eq!(
-        parse(&test_data, test_data_offset),
+        parse_vec(&test_data, test_data_offset),
         Ok(Level {
             name: "test".to_string(),
             width: width,
@@ -53,4 +55,9 @@ fn create_empty_test_data(offset: u32) -> Vec<u8> {
     test_data.append(&mut vec![0; 16 - name.len()]); // null characters for name
 
     test_data
+}
+
+fn parse_vec(vec: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
+    let mut reader = BufReader::new(&vec[..]);
+    parse(&mut reader, offset)
 }
