@@ -58,6 +58,6 @@ fn create_empty_test_data(offset: u32) -> Vec<u8> {
 }
 
 fn parse_vec(vec: &Vec<u8>, offset: u32) -> Result<Level, LevelParseError> {
-    let mut reader = BufReader::new(&vec[..]);
-    parse(&mut reader, offset)
+    let reader: Box<_> = BufReader::new(&vec[..]).into();
+    parse(reader, offset)
 }

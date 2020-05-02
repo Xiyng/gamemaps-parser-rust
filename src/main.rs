@@ -13,17 +13,17 @@ fn main() {
     let level_file_path = args.next().expect(&format!("No level data file path specified."));
 
     let header_file = File::open(&header_file_path).expect(&format!("Header file not found: {}", header_file_path));
-    let level_file = File::open(&level_file_path).expect(&format!("Level file not found: {}", level_file_path));
 
-    let mut header_reader = BufReader::new(&header_file);
-    let header_data = header::parse(&mut header_reader).expect(&format!("Error while parsing the header file."));
+    let header_reader: Box<_> = BufReader::new(header_file).into();
+    let header_data = header::parse(header_reader).expect(&format!("Error while parsing the header file."));
     println!("Header file parsed successfully.");
 
-    let mut level_reader = BufReader::new(&level_file);
     let mut levels_parsed_successfully = 0;
     let total_level_count = header_data.level_offsets.len();
     for level_offset in header_data.level_offsets.iter() {
-        match levels::parse(&mut level_reader, *level_offset) {
+        let level_file = File::open(&level_file_path).expect(&format!("Level file not found: {}", level_file_path));
+        let level_reader: Box<_> = BufReader::new(level_file).into();
+        match levels::parse(level_reader, *level_offset) {
             Ok(_) => {
                 levels_parsed_successfully += 1;
                 println!("Successfully parsed level {}/{}.", levels_parsed_successfully, total_level_count);

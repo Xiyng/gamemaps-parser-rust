@@ -13,7 +13,7 @@ use self::byteorder::*;
 const RLEW_TAG: u16 = 0xabcd;
 const HEADER_LENGTH_U8: usize = 42;
 
-pub fn parse(data_reader: &mut dyn BufRead, offset: u32) -> Result<Level, LevelParseError> {
+pub fn parse<T: BufRead>(mut data_reader: Box<T>, offset: u32) -> Result<Level, LevelParseError> {
     let mut data = Vec::new();
     data_reader.read_to_end(&mut data).map_err(|_| LevelParseError::UnableToReadBuffer)?;
 

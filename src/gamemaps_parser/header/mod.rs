@@ -7,7 +7,7 @@ use std::io::BufRead;
 use std::panic;
 use self::byteorder::*;
 
-pub fn parse(data_reader: &mut dyn BufRead) -> Result<HeaderData, HeaderParseError> {
+pub fn parse<T: BufRead>(mut data_reader: Box<T>) -> Result<HeaderData, HeaderParseError> {
     let mut header = HeaderData {
         level_offsets: Vec::new(),
         tile_info: Vec::new()

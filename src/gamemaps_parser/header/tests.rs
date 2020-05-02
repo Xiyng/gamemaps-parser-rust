@@ -72,6 +72,6 @@ fn parses_valid_file_with_non_zero_offsets() {
 }
 
 fn parse_vec(vec: &Vec<u8>) -> Result<HeaderData, HeaderParseError> {
-    let mut reader = BufReader::new(&vec[..]);
-    parse(&mut reader)
+    let reader: Box<_> = BufReader::new(&vec[..]).into();
+    parse(reader)
 }
